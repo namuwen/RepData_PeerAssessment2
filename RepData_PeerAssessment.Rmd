@@ -1,0 +1,160 @@
+Nam Nguyen  
+Nov 19, 2015  
+For: Coursera Reproducible Research Peer Assessment 2  
+
+# Harmful Weather Events With Respect to Population Health and Economic Consequences in the United States Using the NOAA Storm Database"
+
+## Synopsis 
+
+Using the NOAA Storm Database, the report explores the types of events in the Unites STates that are most harmful with respect to population health and with events have the greatest economic consequences.
+
+Information about the NOAA Storm Database can be found here: https://d396qusza40orc.cloudfront.net/repdata%2Fpeer2_doc%2Fpd01016005curr.pdf
+
+## Data Processes:
+
+* Download the file from http://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2
+* load the file
+* adding a year field to make analysis easier
+
+```{r, echo = TRUE}
+knitr::opts_chunk$set(cache=TRUE)
+# download file
+if (!"StormData.csv.bz2" %in% dir("./")) {
+  download.file("http://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2", destfile = "StormData.csv.bz2", mode="wb")
+}
+
+# load file
+dataset <- read.csv("StormData.csv.bz2")
+
+# add a year field
+dataset$year <- as.numeric(format(as.Date(dataset$BGN_DATE, format = "%m/%d/%Y %H:%M:%S"), "%Y"))
+```
+
+## Data Summary
+
+Most of the storm event data density is post mid 1990's in the NOAA Storm Database as seen in the following histogram. So will look at events historically over all the data as well as just from 1995 and after:
+
+```{r, echo = TRUE}
+hist(dataset$year, breaks = 50, xlab = "year", ylab = "events", main = "Histogram of Weather Events")
+```
+
+## Results
+
+### Across the United States, which types of events are most harmful with respect to population health
+
+#### Fatalities
+First we'll look at the events that have the top 10 number of fatalities overall
+```{r, echo = TRUE}
+#top 10 events by number of fatalities overall
+fatalities <- aggregate(dataset$FATALITIES, by = list(toupper(dataset$EVTYPE)), FUN = "sum")
+top10fatalities <- fatalities[order(fatalities$x, na.last = TRUE, decreasing = TRUE),]
+names(top10fatalities) <- c("Events", "Fatalities")
+head(top10fatalities,10)
+```
+
+This shows overall that TORNADOS have killed the most people with EXCESSIVE HEAT and FLASH FLOOD trailing after.
+
+Next we'll look at the events that have the top ten number of fatalities since 1995
+```{r, echo = TRUE}
+#top 10 events by number of fatalities since 1995
+dataset1995 <- dataset[dataset$year >= 1995,]
+fatalities1995 <- aggregate(dataset1995$FATALITIES, by = list(toupper(dataset1995$EVTYPE)), FUN = "sum")
+top10fatalities1995 <- fatalities1995[order(fatalities1995$x, na.last = TRUE, decreasing = TRUE),]
+names(top10fatalities1995) <- c("Events", "Fatalities")
+head(top10fatalities1995,10)
+```
+
+This shows that recently EXCESSIVE HEAT is the top killer with TORNADOS closely behind.
+
+#### Injuries
+We can now do the same for Injuries.
+
+First we'll look at the events that have the top 10 number of injuries overall
+```{r, echo = TRUE}
+#top 10 events by number of injuries overall
+injuries <- aggregate(dataset$INJURIES, by = list(toupper(dataset$EVTYPE)), FUN = "sum")
+top10injuries <- injuries[order(injuries$x, na.last = TRUE, decreasing = TRUE),]
+names(top10injuries) <- c("Events", "Injuries")
+head(top10injuries,10)
+```
+
+This shows overall that TORNADOS have injured the most people with TSTM WIND and FLOOD trailing after.
+
+Next we'll look at the events that have the top ten number of fatalities since 1995
+```{r, echo = TRUE}
+#top 10 events by number of injuries since 1995
+injuries1995 <- aggregate(dataset1995$INJURIES, by = list(toupper(dataset1995$EVTYPE)), FUN = "sum")
+top10injuries1995 <- injuries1995[order(injuries1995$x, na.last = TRUE, decreasing = TRUE),]
+names(top10injuries1995) <- c("Events", "Injuries")
+head(top10injuries1995,10)
+```
+
+This shows that recently TORNADO injured the most people with FLOOD and EXCESSIVE HEAT closely behind.
+
+
+```{r, echo = TRUE}
+par(mfrow=c(2,2))
+barplot(head(top10fatalities$Fatalities,10), names = head(top10fatalities$Events,10) , xlab = "Event", ylab = "Total Fatalities Historical", main = "Top 10 Fatalities Historical" , cex.names = 0.3, horiz=TRUE, las=1)
+
+barplot(head(top10fatalities1995$Fatalities,10), names = head(top10fatalities1995$Events,10) , xlab = "Event", ylab = "Total Fatalities Since 1995", main = "Top 10 Fatalities Since 1995" , cex.names = 0.3, horiz=TRUE, las=1)
+
+barplot(head(top10injuries$Injuries,10), names = head(top10injuries$Events,10) , xlab = "Event", ylab = "Total Injuries Historical", main = "Top 10 Injuries Historical" , cex.names = 0.3, horiz=TRUE, las=1)
+
+barplot(head(top10injuries1995$Injuries,10), names = head(top10injuries1995$Events,10) , xlab = "Event", ylab = "Total Injuries Since 1995", main = "Top 10 Injuries Since 1995" , cex.names = 0.3, horiz=TRUE, las=1)
+```
+
+## Across the United States, which types of events have the greatest economic consequences?
+
+## Property Damage
+
+Overall Property Damage
+```{r, echo = TRUE}
+property <- aggregate(dataset$PROPDMG, by = list(toupper(dataset$EVTYPE)), FUN = "sum")
+names(property) <- c("EVENT","PROPERTY_DAMAGE")
+top10property <- property[order(property$PROPERTY_DAMAGE, na.last = TRUE, decreasing = TRUE),]
+head(top10property, 10)
+```
+
+we see that TORNADO followed by FLASH FLOOD, TSTM WIND, FLOOD, and THUNDERSTORM WIND compomise the top five.
+
+```{r, echo = TRUE}
+property1995 <- aggregate(dataset1995$PROPDMG, by = list(toupper(dataset1995$EVTYPE)), FUN = "sum")
+names(property1995) <- c("EVENT","PROPERTY_DAMAGE")
+top10property1995 <- property1995[order(property1995$PROPERTY_DAMAGE, na.last = TRUE, decreasing = TRUE),]
+head(top10property1995, 10)
+```
+
+Since 1995 the top property damage events are similar in differing order
+
+### CROP DAMAGE
+
+
+Overall Crop Damage
+```{r, echo = TRUE}
+crop <- aggregate(dataset$CROPDMG, by = list(toupper(dataset$EVTYPE)), FUN = "sum")
+names(crop) <- c("EVENT","CROP_DAMAGE")
+top10crop <- crop[order(crop$CROP_DAMAGE, na.last = TRUE, decreasing = TRUE),]
+head(top10crop, 10)
+```
+
+we see that HAIL followed by FLASH FLOOD, FLOOD, TSTM WIND, TORNADO compomise the top five.
+
+```{r, echo = TRUE}
+crop1995 <- aggregate(dataset1995$CROPDMG, by = list(toupper(dataset1995$EVTYPE)), FUN = "sum")
+names(crop1995) <- c("EVENT","CROP_DAMAGE")
+top10crop1995 <- crop1995[order(crop1995$CROP_DAMAGE, na.last = TRUE, decreasing = TRUE),]
+head(top10crop1995, 10)
+```
+
+Since 1995 the top property damage events are the same
+
+```{r, echo = TRUE}
+par(mfrow=c(2,2))
+barplot(head(top10property$PROPERTY_DAMAGE,10), names = head(top10property$EVENT,10) , xlab = "Event", ylab = "Total Property Damage Historical", main = "Top 10 Property Damage Historical" , cex.names = 0.3, horiz=TRUE, las=1)
+
+barplot(head(top10property1995$PROPERTY_DAMAGE,10), names = head(top10property1995$EVENT,10) , xlab = "Event", ylab = "Total Property Damage Since 1995", main = "Top 10 Property Damage SInce 1995", cex.names = 0.3, horiz=TRUE, las=1)
+
+barplot(head(top10crop$CROP_DAMAGE,10), names = head(top10crop$EVENT,10) , xlab = "Event", ylab = "Total Crop Damage Historical", main = "Top 10 Crop Damage Historical" , cex.names = 0.3, horiz=TRUE, las=1)
+
+barplot(head(top10crop1995$CROP_DAMAGE,10), names = head(top10crop1995$EVENT,10) , xlab = "Event", ylab = "Total Crop Damage Since 1995", main = "Top 10 Crop Damage SInce 1995", cex.names = 0.3, horiz=TRUE, las=1)
+```
